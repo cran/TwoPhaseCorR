@@ -1,17 +1,16 @@
 Package: TwoPhaseCorR
 Type: Package
-Title: Construction and Analysis of Two-Phase Experimental Designs with
-        Correlated Errors
-Version: 1.0.0
-Authors@R: c(person("Akhilesh", "Jha", email = "jha.akhilesh09@gmail.com", role = c("aut", "cre")), person("Cini", "Varghese", email = "cini2204@gmail.com", role = "aut"), person("Seema", "Jaggi", email = "seema.jaggi@icar.gov.in", role = "aut"), person("Eldho", "Varghese", email = "eldoiasri@gmail.com", role = "aut"), person("Mohd", "Harun", email = "mohd.harun@icar.gov.in", role = "aut"), person("Med Ram", "Verma", email = "drmrverma@gail.com", role = "aut"))
+Title: Construct Two-Phase Experimental Designs with Correlated Errors
+Version: 1.1.0
+Authors@R: c(person(given = "Akhilesh", family = "Jha", email = "jha.akhilesh09@gmail.com", role = c("aut", "cre")), person(given = "Cini", family = "Varghese", email = "cini2204@gmail.com", role = "aut"), person(given = "Seema", family = "Jaggi", email = "seema.jaggi@icar.gov.in", role = "aut"), person(given = "Eldho", family = "Varghese", email = "eldoiasri@gmail.com", role = "aut"), person(given = "Mohd", family = "Harun", email = "mohd.harun@icar.gov.in", role = "aut"), person(given = "Med Ram", family = "Verma", email = "drmrverma@gail.com", role = "aut"))
 Maintainer: Akhilesh Jha <jha.akhilesh09@gmail.com>
-Description: Tools for constructing and analyzing two-phase experimental designs under correlated error structures. Includes cyclic constructions of designs and computes information matrices for Phase I residual treatment effects, Phase II direct treatment effects, and their interaction along with the canonical efficiency factor.
+Description: Tools for constructing and analyzing two-phase experimental designs under correlated error structures. Version 1.1.0 includes improved efficiency factor classification with tolerance control, updated plot visualizations, and improved clarity of the results. The conceptual framework and the term two-phase were introduced by McIntyre (1955) <doi:10.2307/3001770>).
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
-Imports: Matrix, MASS, ggplot2
+Imports: ggplot2, dplyr, Matrix, MASS
 NeedsCompilation: no
-Packaged: 2025-07-06 18:42:33 UTC; Akhilesh Jha
+Packaged: 2025-07-28 20:11:38 UTC; Akhilesh Jha
 Author: Akhilesh Jha [aut, cre],
   Cini Varghese [aut],
   Seema Jaggi [aut],
@@ -19,4 +18,4 @@ Author: Akhilesh Jha [aut, cre],
   Mohd Harun [aut],
   Med Ram Verma [aut]
 Repository: CRAN
-Date/Publication: 2025-07-09 13:30:06 UTC
+Date/Publication: 2025-07-28 20:40:03 UTC

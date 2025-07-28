@@ -1,30 +1,32 @@
 # Register global variables for CRAN compliance
-utils::globalVariables(c("CEF", "rho", "rho_ortho"))
+utils::globalVariables(c("Class", "Efficiency", "Rho"))
 
-#' Two-Phase Experimental Design Construction and Analysis
+#' Construct Two-Phase Experimental Designs with Correlated Errors
 #'
-#' Constructs and evaluates a two-phase experimental design using cyclic methods.
-#' Calculates information matrices and Canonical Efficiency Factor (CEF) under
-#' correlated error structures.
+#' @description Constructs a two-phase experimental design, computes component information matrices, and evaluates the efficiency factor across intra-block correlations values.
 #'
 #' @name TwoPhaseDesign
-#' @param v Integer (>=3). Number of treatments in Phase II.
-#' @param rho Numeric (-1 < rho < 1). Correlation coefficient.
-#' @param plot Logical. If TRUE (default), generates a CEF plot using ggplot2.
-#' @return A list containing the Phase I and Phase II layouts, combined layout,
-#'         information matrices for treatment and interaction effects, and a
-#'         table and plot of Canonical Efficiency Factors.
+#' @param v Integer (greater than or equal to 3). Number of treatments in Phase II.
+#' @param rho Intra-block correlation coefficient. A numeric value in (-1, 1).
+#' @param plot Logical. If TRUE, plots Efficiency Factor vs Intra-block correlation coefficient.
+#' @param n_table Number of efficiency values to display in the output table.
+#' @param tol Tolerance level for classifying Efficiency Factor as approximately equal to 1. Default is 1e-3.
 #'
-#' @import Matrix MASS ggplot2
+#' @return A list with design layouts, component information matrices, efficiency plot, summary efficiency table, and filtered efficiency table.
+#'
+#' @import Matrix dplyr ggplot2
+#' @importFrom MASS ginv
+#'
 #' @references
-#' McIntyre, G. A. (1955). \emph{Design and analysis of two-phase experiments}. Biometrics, 11(3), 324-334.
+#' McIntyre, G. A. (1955). Design and analysis of two-phase experiments. \emph{Biometrics}, 11(3), 324-334.
 #' <doi:10.2307/3001770>
+#'
 #' @examples
-#' result <- TwoPhaseDesign(v = 3, rho = 0.1, plot = FALSE)
-#' print(result$cef_table)
+#' result <- TwoPhaseDesign(v = 4, rho = 0.25, plot = FALSE)
+#' print(result$eff_summary)
 #'
 #' @export
-TwoPhaseDesign <- function(v, rho, plot = TRUE) {
+TwoPhaseDesign <- function(v, rho, plot = TRUE, n_table = 10, tol = 1e-3) {
   if (!is.numeric(v) || v < 3 || v != floor(v)) stop("`v` must be an integer >= 3.")
   if (!is.numeric(rho) || abs(rho) >= 1) stop("`rho` must be between -1 and 1.")
 
@@ -125,52 +127,80 @@ TwoPhaseDesign <- function(v, rho, plot = TRUE) {
   C_mat_trt2 <- round(Np22 %*% C_mat %*% t(Np22), 5)
   C_mat_trt1_trt2 <- round(Np12 %*% C_mat %*% t(Np12), 5)
 
-  # Canonical Efficiency Factor Computation
-  lambda2 <- v2 - 2
-  r <- v2 - 1
-  k2 <- v2 - 1
-  rho_ortho <- (v2 - k2) / (k2 * (v2 - 1))
-  upper_rho <- 1 - (lambda2 * v2) / (r * k2 * 2)
-  lower_rho <- -0.50
-
-  fine_rho_vals <- seq(lower_rho, upper_rho, length.out = 50)
-  CEF_vals <- (lambda2 * v2) / (r * k2 * (1 - fine_rho_vals))
-  cef_all <- data.frame(rho = fine_rho_vals, CEF = CEF_vals)
-  cef_plot <- subset(cef_all, is.finite(CEF) & CEF > 0)
-
-  cef_range <- subset(cef_plot, CEF >= 0.75 & CEF <= 1)
-  if (nrow(cef_range) >= 10) {
-    idx <- round(seq(1, nrow(cef_range), length.out = 10))
-    cef_range <- cef_range[idx, ]
+  ##--- Efficiency Computation ---##
+  efficiency_phi <- function(rho, v2, k2) {
+    num <- v2 * (k2 - 1) * (1 + rho * k2 - rho)
+    den <- k2 * ((1 - rho) * (v2 - 1) + rho * v2 * (k2 - 1))
+    return(num / den)
   }
 
-  # ⬇️ Add v, k2, lambda2, rho_ortho to cef_table
-  cef_table <- data.frame(
-    v = v,
-    k2 = k2,
-    lambda2 = lambda2,
-    rho_ortho = round(rho_ortho, 4),
-    rho = cef_range$rho,
-    CEF = cef_range$CEF
+  k2 <- v2 - 1
+  lambda <- v2 - 2
+  rho_seq <- seq(-0.99, 0.99, by = 0.01)
+  eff_vals <- efficiency_phi(rho_seq, v2, k2)
+
+  # Classification with tolerance
+  class_labels <- case_when(
+    abs(eff_vals - 1) <= tol ~ "= 1",
+    eff_vals < 1 - tol ~ "< 1",
+    eff_vals > 1 + tol ~ "> 1"
   )
 
-  if (plot) {
-    print(
-      ggplot(cef_plot, aes(x = rho, y = CEF)) +
-        geom_line(color = "blue") +
-        geom_point(color = "blue", size = 1) +
-        geom_hline(yintercept = 1, linetype = "dashed", color = "gray") +
-        geom_vline(xintercept = rho_ortho, linetype = "dotted", color = "red") +
-        annotate("text", x = max(cef_plot$rho), y = min(cef_plot$CEF, na.rm = TRUE),
-                 label = paste("Design achieves orthogonal efficiency at rho =", round(rho_ortho, 2)),
-                 hjust = 1, vjust = 0, color = "red", size = 4) +
-        labs(title = "Canonical Efficiency Factor vs Intra-block Correlation",
-             x = "Intra-block Correlation",
-             y = "Canonical Efficiency Factor (CEF)") +
-        theme_minimal()
-    )
-  }
+  df_tab <- data.frame(
+    Rho = rho_seq,
+    Efficiency = round(eff_vals, 4),
+    Class = factor(class_labels, levels = c("< 1", "= 1", "> 1"))
+  )
 
+  eff_summary <- df_tab %>%
+    group_by(Class) %>%
+    summarise(
+      Rho_Min = round(min(Rho), 2),
+      Rho_Max = round(max(Rho), 2),
+      .groups = "drop"
+    ) %>%
+    mutate(Interpretation = case_when(
+      Class == "= 1" ~ "Exactly Efficient",
+      Class == "< 1" ~ "At Par Efficient in the Class",
+      Class == "> 1" ~ "Efficient in the Class"
+    ))
+
+  eff_table <- df_tab %>%
+    filter(Efficiency >= 0.75, Efficiency < 1) %>%
+    slice(round(seq(1, n(), length.out = n_table))) %>%
+    transmute(
+      v = v2, k = k2, lambda = lambda,
+      rho = round(Rho, 3),
+      E = round(Efficiency, 4)
+    )
+
+  ##--- Plot ---##
+  eff_plot <- NULL
+  if (plot) {
+    df_plot <- data.frame(
+      Rho = seq(-0.99, 0.99, length.out = 20),
+      Efficiency = efficiency_phi(seq(-0.99, 0.99, length.out = 20), v2, k2)
+    )
+
+    eff_plot <- ggplot(df_plot, aes(x = Rho, y = Efficiency)) +
+      geom_line(color = "blue", linewidth = 1) +
+      geom_hline(yintercept = 1, linetype = "dashed", color = "red", linewidth = 0.8) +
+      labs(
+        title = bquote("Plot of Efficiency Factor (E) against "~rho~" for " ~ v == .(v2)),
+        x = "Intra-Block Correlation ("~rho~")",
+        y = "Efficiency Factor (E)"
+      ) +
+      theme_minimal(base_size = 13) +
+      theme(
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        legend.position = "none"
+      )
+  }
+  # ----------- Compute Efficiency at Input rho -----------
+  efficiency_at_rho <- efficiency_phi(rho, v2, k2)
+  cat(sprintf("Efficiency Factor at rho = %.3f is E = %.4f\n", rho, efficiency_at_rho))
+
+  ##--- Return Results ---##
   return(list(
     d1 = d1,
     d2 = d2,
@@ -178,7 +208,8 @@ TwoPhaseDesign <- function(v, rho, plot = TRUE) {
     C_mat_trt1 = C_mat_trt1,
     C_mat_trt2 = C_mat_trt2,
     C_mat_trt1_trt2 = C_mat_trt1_trt2,
-    cef_plot = cef_plot,
-    cef_table = cef_table
+    eff_plot = eff_plot,
+    eff_table = eff_table,
+    eff_summary = eff_summary
   ))
 }

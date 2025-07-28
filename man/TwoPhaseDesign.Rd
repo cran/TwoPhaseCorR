@@ -2,33 +2,33 @@
 % Please edit documentation in R/TwoPhaseDesign.R
 \name{TwoPhaseDesign}
 \alias{TwoPhaseDesign}
-\title{Two-Phase Experimental Design Construction and Analysis}
+\title{Construct Two-Phase Experimental Designs with Correlated Errors}
 \usage{
-TwoPhaseDesign(v, rho, plot = TRUE)
+TwoPhaseDesign(v, rho, plot = TRUE, n_table = 10, tol = 0.001)
 }
 \arguments{
-\item{v}{Integer (>=3). Number of treatments in Phase II.}
+\item{v}{Integer (greater than or equal to 3). Number of treatments in Phase II.}
 
-\item{rho}{Numeric (-1 < rho < 1). Correlation coefficient.}
+\item{rho}{Intra-block correlation coefficient. A numeric value in (-1, 1).}
 
-\item{plot}{Logical. If TRUE (default), generates a CEF plot using ggplot2.}
+\item{plot}{Logical. If TRUE, plots Efficiency Factor vs Intra-block correlation coefficient.}
+
+\item{n_table}{Number of efficiency values to display in the output table.}
+
+\item{tol}{Tolerance level for classifying Efficiency Factor as approximately equal to 1. Default is 1e-3.}
 }
 \value{
-A list containing the Phase I and Phase II layouts, combined layout,
-        information matrices for treatment and interaction effects, and a
-        table and plot of Canonical Efficiency Factors.
+A list with design layouts, component information matrices, efficiency plot, summary efficiency table, and filtered efficiency table.
 }
 \description{
-Constructs and evaluates a two-phase experimental design using cyclic methods.
-Calculates information matrices and Canonical Efficiency Factor (CEF) under
-correlated error structures.
+Constructs a two-phase experimental design, computes component information matrices, and evaluates the efficiency factor across intra-block correlations values.
 }
 \examples{
-result <- TwoPhaseDesign(v = 3, rho = 0.1, plot = FALSE)
-print(result$cef_table)
+result <- TwoPhaseDesign(v = 4, rho = 0.25, plot = FALSE)
+print(result$eff_summary)
 
 }
 \references{
-McIntyre, G. A. (1955). \emph{Design and analysis of two-phase experiments}. Biometrics, 11(3), 324-334.
+McIntyre, G. A. (1955). Design and analysis of two-phase experiments. \emph{Biometrics}, 11(3), 324-334.
 <doi:10.2307/3001770>
 }
