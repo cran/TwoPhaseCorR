@@ -23,6 +23,7 @@ utils::globalVariables(c("Class", "Efficiency", "Rho"))
 #'
 #' @examples
 #' result <- TwoPhaseDesign(v = 4, rho = 0.25, plot = FALSE)
+#' print(result$C_mat_trt2)
 #' print(result$eff_summary)
 #'
 #' @export

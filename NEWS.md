@@ -1,15 +1,29 @@
-# TwoPhaseCorR 1.1.0
+# TwoPhaseCorR 1.1.1
+
+_Resubmission_: This update addresses a namespace masking issue that could cause  
+`ginv` from **MASS** to be unavailable in examples under certain environments.  
+The fix is applied by explicitly importing `ginv` and reordering package Imports.
 
 ## New Features
-* Added tolerance-based classification for Efficiency Factor (E ≈ 1).
-* `eff_plot` now includes improved axis labels and enhanced visual clarity.
-* Displays Efficiency Factor (E) at the specified `rho` directly in the console.
+- Added tolerance-based classification for Efficiency Factor (E ≈ 1).
+- Function `TwoPhaseDesign()` now prints Efficiency Factor (E) at the specified `rho` directly to the console.
+- Enhanced `eff_plot` with improved axis labels, title, and visual clarity using `ggplot2`.
 
 ## Enhancements
-* Cleaned output structure for improved interpretation and modularity.
-* Support for discovering efficient designs across values of `v` and `rho`.
+- Improved output structure and modular layout for better interpretability.
+- Streamlined discovery of efficient designs over a range of `v` and `rho`.
+- Enhanced numerical stability in efficiency computations.
 
-## Existing Functionality
-* Constructs and analyzes two-phase experimental designs with correlated errors.
-* Computes Efficiency Factor (E) across a range of intra-block correlation values.
-* Includes plots for Efficiency Factor and design layouts for treatment effects.
+## Bug Fixes
+- Fixed namespace masking issue for `ginv` by explicitly importing from **MASS**.
+- Fixed global variable declaration issues for `Class`, `Rho`, and `Efficiency` to meet CRAN compliance (`utils::globalVariables()` used).
+- Removed problematic Unicode characters (e.g., `≥`, `≈`) from `.Rd` files that previously caused LaTeX PDF manual generation errors.
+
+## Documentation
+- Added detailed argument and return value descriptions in function documentation.
+- Cleaned and standardized `.Rd` files for LaTeX compatibility.
+- Resolved all CRAN LaTeX PDF warnings by ensuring proper rendering under `pdflatex`.
+
+## CRAN Readiness
+- Successfully passes `R CMD check` with **no errors, warnings, or notes**.
+- Verified compatibility with R 4.5.1 and R-devel across platforms.

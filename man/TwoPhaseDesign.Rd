@@ -25,6 +25,7 @@ Constructs a two-phase experimental design, computes component information matri
 }
 \examples{
 result <- TwoPhaseDesign(v = 4, rho = 0.25, plot = FALSE)
+print(result$C_mat_trt2)
 print(result$eff_summary)
 
 }
